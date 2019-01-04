@@ -1,0 +1,165 @@
+# Prediction of Online Sales using Xgboost
+
+# Input data
+```{r}
+data=read.csv('F:\\Datasets\\Online Sales Prediction\\train.csv',header=T)
+```
+
+# Characteristics of the data
+```{r}
+dim(data) 
+head(data)
+str(data)
+summary(data)
+```
+
+# Deleting Store and Date Variables
+```{r}
+data$Store=NULL
+data$Date=NULL
+```
+
+# Assigning proper data type to variables
+```{r}
+data$Sales <- as.numeric(data$Sales)
+data$DayOfWeek <- as.factor(data$DayOfWeek)
+data$Customers <- as.numeric(data$Customers)
+```
+
+# Checking for NA
+```{r}
+ sum(is.na(data))
+```
+# Total occurences of zero Sales (Target)
+```{r}
+ sum(data$Sales==0)
+```
+
+# Deleting zero values 
+
+```{r}
+library(dplyr)
+data <- data%>%filter(Sales>0)
+dim(data)
+```
+
+# Data Manipulation
+
+```{r}
+# The table of average daily sales is
+ data%>%group_by(DayOfWeek)%>%summarise(Daily_Average=mean(Sales))
+```
+
+# The average sales by School Holiday is 
+
+```{r}
+# 0 - No School Holiday ; 1 - School Holiday
+ data%>%group_by(SchoolHoliday)%>%summarise(avg_on_holiday=mean(Sales))
+```
+
+# The average daily sales and the median of customers served by Promo code
+
+```{r}
+data%>%group_by(Promo,DayOfWeek)%>%summarise(max_sales=max(Sales),median_of_customers=median(Customers))%>%arrange(desc(max_sales))
+```
+
+# Data Visualization
+
+# Histograms for Sales and Customers 
+
+```{r}
+hist(data$Sales,xlim = c(0,25000),col='orange',main='Histogram of Sales',xlab='Sales',
+     ylab='Frequency')
+
+hist(data$Customers,xlim=c(0,2700),col='turquoise1',main='Histogram of Customers',
+     xlab='No. of Customers',ylab='Frequency')
+```
+
+# Scatter plot of Sales vs Customers
+
+```{r}
+
+library(ggplot2)
+ggplot(data)+geom_point(mapping=aes(x=Sales,y=Customers),position = 'jitter',colour='blue')+
+  theme_classic()+labs(x='Sales',y='Customers',title="Scatter plot of  Customers vs Sales")
+```
+
+# Correlation 
+```{r}
+cor(data$Customers,data$Sales) 
+
+```
+
+# Data Partition into training and test
+
+```{r}
+set.seed(111)
+idx <- sample(2,nrow(data),prob=c(0.7,0.3),replace=T)
+train <- data[idx==1,]
+test <- data[idx==2,]
+dim(train) 
+dim(test)
+```
+
+# One hot encoding for training set
+
+```{r}
+data_ohe <-as.data.frame(model.matrix(~.-1,data=train))
+ohe_label <- data_ohe[,'Sales'] # Target variable - Sales
+```
+
+# One hot encoding for test set
+
+```{r}
+test_ohe <- as.data.frame(model.matrix(~.-1,data=test))
+test_label <- test_ohe[,'Sales']
+```
+
+# Xgboost Model
+```{r}
+
+library(xgboost)
+
+dtrain <- xgb.DMatrix(as.matrix(data_ohe%>%select(-Sales)),label=ohe_label)
+dtest <- xgb.DMatrix(as.matrix(test_ohe%>%select(-Sales)),label=test_label)
+```
+
+# Training the xgboost model
+```{r}
+set.seed(500)
+
+w <- list(train=dtrain,test= dtest)
+
+xgb_model1 <- xgb.train(data=dtrain,booster='gbtree',nrounds=800,max_depth=6,eval_metric='rmse',
+                        eta=0.135,watchlist=w,early_stopping_rounds = 30) 
+```
+# Model 2
+```{r}
+xgb_model2 <- xgb.train(data=dtrain,booster='gbtree',nrounds=800,max_depth=6,eval_metric='rmse',
+                  eta=0.1,watchlist=w,early_stopping_rounds = 30) 
+```
+
+# Model 3
+```{r}
+xgb_model3 <- xgb.train(data=dtrain,booster='gbtree',nrounds=1000,max_depth=8,eval_metric='rmse',
+                  eta=0.3,watchlist=w,early_stopping_rounds = 30)  
+```
+
+# Model 4
+```{r}
+xgb_model4 <- xgb.train(data=dtrain,booster='gbtree',nrounds=800,max_depth=6,eval_metric='rmse',
+                        eta=0.135,watchlist=w,early_stopping_rounds = 30)
+```
+
+#  Model 2 is the best model
+```{r}
+best_model <- xgb.train(data=dtrain,booster='gbtree',nrounds=95,max_depth=6,eval_metric='rmse',
+                      eta=0.1,watchlist=w) 
+```
+
+# Prediction for test set
+```{r}
+pred_sales <- predict(best_model,newdata = dtest,class='response')
+pred_sales <- round(pred_sales)
+head(pred_sales)
+```
