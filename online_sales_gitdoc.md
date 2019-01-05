@@ -4,7 +4,7 @@ Prediction of Online Sales using Xgboost
 # Input data
 
 ``` r
-data=read.csv('F:\\Datasets\\Online Sales Prediction\\train.csv',header=T)
+data=read.csv('F:\\...\\data.csv',header=T)
 ```
 
 # Characteristics of the data
