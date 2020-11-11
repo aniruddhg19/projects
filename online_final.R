@@ -136,6 +136,7 @@ pred_sales <- predict(best_model,newdata = dtest,class='response')
 pred_sales <- round(pred_sales)
 head(pred_sales,10)
 
+[1]  6439  8727 12703  7311 10844  6296  6858  6727  4423  4846
 
 #Feature importance
 
@@ -143,18 +144,5 @@ imp <- xgb.importance(colnames(dtrain),model=best_model)
 xgb.plot.importance(imp)
 
 
-# Grid Search for best model parameters
-
-library(caret)
-
-xgb_grid <- expand.grid(nrounds=500,max_depth=c(6,8),
-            eta=c(0.1,0.12,0.135,0.15),subsample=c(0.3,0.5,0.7),gamma=0,
-            colsample_bytree=1,min_child_weight=1)
-
-tr_ctrl <- trainControl(method='repeatedcv',search='grid',number =10,repeats = 5 )
-
-xgb_ctrain <- train(x=data_ohe%>%select(-Sales),y=ohe_label,
-                    metric='RMSE',trControl=tr_ctrl,maximize=F,method='xgbTree',
-                    tuneGrid=xgb_grid)
 
 
