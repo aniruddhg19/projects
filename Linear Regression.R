@@ -32,6 +32,12 @@ summary(wine_lm2)
 
 predict(wine_lm2,data.frame(fixed.acidity = 7.9,residual.sugar = 2.6,chlorides = 0.085, pH = 3.7,alcohol = 11),interval = 'confidence')
 
+     fit       lwr       upr
+1 0.9978039 0.9976695 0.9979383
+
 # prediction with prediction interval - 95%
 
 predict(wine_lm2,data.frame(fixed.acidity = 17.8,residual.sugar = 17,chlorides = 1, pH = 5,alcohol = 18),interval = 'prediction')
+
+     fit     lwr      upr
+1 1.016803 1.01477 1.018837
