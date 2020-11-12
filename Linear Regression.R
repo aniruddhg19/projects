@@ -41,3 +41,19 @@ predict(wine_lm2,data.frame(fixed.acidity = 17.8,residual.sugar = 17,chlorides =
 
      fit     lwr      upr
 1 1.016803 1.01477 1.018837
+
+#Accuracy
+
+AIC(wine_lm2)
+[1] -18330.25
+
+#MAE
+fit <- wine_lm2$fitted.values
+
+comp_table <- as.data.frame(cbind(Actuals = wine$density,Predicted = fit))
+str(comp_table)
+
+MAE <- mean(abs(comp_table$Actuals-comp_table$Predicted))
+MAE
+[1] 0.0005873531
+
