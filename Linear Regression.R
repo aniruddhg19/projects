@@ -28,6 +28,13 @@ summary(wine_lm)
 wine_lm2 <- lm(density~fixed.acidity + residual.sugar + chlorides + pH + alcohol,data = wine )
 summary(wine_lm2)
 
+#Test for multicollinearity
+
+round(car::vif(wine_lm2),3)
+
+fixed.acidity residual.sugar      chlorides        pH           alcohol 
+     1.931          1.019          1.126          2.094          1.091 
+
 # prediction with confidence interval - 95%
 
 predict(wine_lm2,data.frame(fixed.acidity = 7.9,residual.sugar = 2.6,chlorides = 0.085, pH = 3.7,alcohol = 11),interval = 'confidence')
